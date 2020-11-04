@@ -1,0 +1,2 @@
+grpc_server: ":8000"
+http: ":8080"

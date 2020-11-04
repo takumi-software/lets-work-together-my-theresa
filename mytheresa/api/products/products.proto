@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package mytheresa.api.products;
+
+option go_package = "/my-theresa/products";
+
+import "google/api/annotations.proto";
+
+service ProductListing {
+  rpc Fetch(FetchProductsRequest) returns (FetchProductsResponse) {
+    option (google.api.http) = {
+      get: "/products"
+    };
+  }
+}
+
+message FetchProductsRequest {
+  string category = 10;
+  uint64 price = 20;
+}
+
+message FetchProductsResponse {
+  repeated Product products = 10;
+}
+
+message Product {
+  string sku = 10;
+  string name = 20;
+  string category = 30;
+  Price price = 40;
+}
+
+message Price {
+  uint64 original = 10;
+  uint64 final = 20;
+  string discount_percentage = 30;
+  string currency = 40;
+}
