@@ -5,6 +5,7 @@ package mytheresa.api.products;
 option go_package = "/my-theresa/products";
 
 import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
 
 service ProductListing {
   rpc Fetch(FetchProductsRequest) returns (FetchProductsResponse) {
@@ -31,8 +32,8 @@ message Product {
 }
 
 message Price {
-  uint64 original = 10;
-  uint64 final = 20;
-  string discount_percentage = 30;
+  float original = 10;
+  float final = 20;
+  google.protobuf.Value discount_percentage = 30;
   string currency = 40;
 }

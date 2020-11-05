@@ -1,15 +1,17 @@
 package promotions
 
-import "github.com/takumi-software/lets-work-together-my-theresa/services/products/internal/infrastructure"
+import (
+	"github.com/takumi-software/lets-work-together-my-theresa/services/products/internal/infrastructure"
+)
 
 type product struct {
 	Sku      string
 	Name     string
 	Category string
-	Price    price
+	Price    Price
 }
 
-func NewProduct(sku, name, category string, pr uint64) product {
+func NewPromotionProduct(sku, name, category string, pr uint64) product {
 	product := product{
 		Sku:      sku,
 		Name:     name,
@@ -18,15 +20,15 @@ func NewProduct(sku, name, category string, pr uint64) product {
 
 	discountPercentage := product.Discount()
 	finalPrice := pr
-	if discountPercentage > 0 {
-		finalPrice = pr * uint64(100/discountPercentage)
+	if discountPercentage > 0 && finalPrice > 0 {
+		finalPrice = finalPrice - ((uint64(discountPercentage) * finalPrice) / 100)
 	}
 
-	product.Price = price{
-		original:           pr,
-		final:              finalPrice,
-		discountPercentage: discountPercentage,
-		currency:           setCurrency(),
+	product.Price = Price{
+		Original:           pr,
+		Final:              finalPrice,
+		DiscountPercentage: discountPercentage,
+		Currency:           setCurrency(),
 	}
 
 	return product
@@ -41,7 +43,9 @@ func Fetch(filter ProductsFilter) (Products, error) {
 		return nil, err
 	}
 	for _, p := range raw.Products {
-		products = append(products, NewProduct(p.SKU, p.Name, p.Category, p.Price))
+		if meetsFilters(p, filter) {
+			products = append(products, NewPromotionProduct(p.SKU, p.Name, p.Category, p.Price))
+		}
 	}
 	return products, nil
 }
@@ -54,4 +58,15 @@ func (p *product) Discount() int {
 		}
 	}
 	return 0
+}
+
+func meetsFilters(product infrastructure.Product, filter ProductsFilter) bool {
+	results := true
+	if filter.category != "" && filter.category != product.Category {
+		results = false
+	}
+	if filter.price != 0 && filter.price != product.Price {
+		results = false
+	}
+	return results
 }

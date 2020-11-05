@@ -2,12 +2,16 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"net/http"
+	"time"
 
-	"github.com/takumi-software/lets-work-together-my-theresa/protos/go/my-theresa/products"
-	"github.com/takumi-software/lets-work-together-my-theresa/services/products/internal/adapter"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/pkg/errors"
+	"github.com/takumi-software/lets-work-together-my-theresa/protos/go/my-theresa/products"
+	"github.com/takumi-software/lets-work-together-my-theresa/services/products/internal/adapter"
 	"github.com/takumi-software/lets-work-together-my-theresa/services/products/internal/application"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -55,10 +59,15 @@ func Bootstrap(ctx context.Context, cfg Config, logger *zap.Logger) error {
 		return be.Serve(ctx, cfg, logger)
 	})
 
+	starter("http-server", func(ctx context.Context) error {
+		return runHttp(ctx, cfg, logger)
+	})
+
 	return g.Wait()
 }
 
 func New(ctx context.Context, cfg Config, logger *zap.Logger) (Products, error) {
+	//TODO we can add generic context, config and logger in the future
 	return Products{}, nil
 }
 
@@ -91,4 +100,22 @@ func StartGRPCListener(cfg *Config) (net.Listener, error) {
 	}
 	cfg.GrpcServer = l.Addr().String()
 	return l, nil
+}
+
+func runHttp(ctx context.Context, cfg Config, logger *zap.Logger) error {
+	logger.Info("Waiting to add gateway for http service")
+	time.Sleep(5 * time.Second)
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := products.RegisterProductListingHandlerFromEndpoint(ctx, mux, cfg.GrpcServer, opts)
+	if err != nil {
+		return err
+	}
+	logger.Info("We are rerady to go!!")
+	err = http.ListenAndServe(cfg.HTTP, mux)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
 }

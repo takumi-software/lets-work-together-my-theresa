@@ -15,7 +15,7 @@ func NewService() ProductsService {
 }
 
 func (ps *productsService) Fetch(ctx context.Context, filter *FetchFilterInput) (*FetchOutput, error) {
-	prs, err := products.Fetch(products.ProductsFilter{})
+	prs, err := products.Fetch(products.NewProductsFilter(filter.Category, filter.Price))
 	if err != nil {
 		return nil, err
 	}

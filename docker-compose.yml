@@ -1,0 +1,10 @@
+version: "2"
+services:
+  products:
+    image: golang
+    volumes:
+      - .:/go/src/lets-work-together-my-theresa
+    working_dir: /go/src/lets-work-together-my-theresa/services/products
+    command: go run main.go
+    ports:
+      - 8080:8080

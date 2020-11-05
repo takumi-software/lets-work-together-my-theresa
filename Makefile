@@ -4,10 +4,11 @@ PROTOTOOL_VERSION := 1.8.1
 proto:
 	@echo Formatting proto and generating proto buffer files...
 	@docker run --env GOPATH=/go -v $(shell pwd):/go/src/github.com/takumi-software/lets-work-together-my-theresa uber/prototool:$(PROTOTOOL_VERSION) /bin/bash -c 'sleep 5; /go/src/github.com/takumi-software/lets-work-together-my-theresa/proto_generator.sh;'
-
-build: proto
-	#It builds the backend application using your currrent architecture
-	go run services/promotions/main.go
+run: proto
+	#It builds the backend application using your current architecture
+	docker-compose up
+stop:
+	docker-compose down
 lint: bin/golangci-lint revive
 	bin/golangci-lint run -v
 .PHONY: lint
